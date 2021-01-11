@@ -1,0 +1,43 @@
+version: '3'
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: containers/app/Dockerfile.prod
+    command: bash -c "rm -f /redmine/tmp/pids/server.pid && bundle exec puma -e production -C config/puma.rb"
+    volumes:
+      - .:/redmine
+      - public-data:/redmine/public
+      - tmp-data:/redmine/tmp
+    depends_on:
+      - db
+  
+  web:
+    build: 
+      context: containers/web/
+      dockerfile: Dockerfile.prod
+    ports:
+      - 80:80
+    volumes:
+      - public-data:/redmine/public
+      - tmp-data:/redmine/tmp
+    depends_on:
+      - app
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_USER: hoge
+      MYSQL_PASSWORD: fugafuga_1
+      MYSQL_ROOT_PASSWORD: rootdayo
+      MYSQL_DATABASE: redmine
+    ports:
+      - 3306
+    volumes:
+      - ./containers/db/multibyte.cnf:/etc/mysql/conf.d/multibyte.cnf
+      #- db-store:/var/lib/mysql
+ 
+volumes:
+  #db-store:
+  public-data:
+  tmp-data:
